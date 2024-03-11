@@ -1,9 +1,15 @@
-import { Injectable } from '@nestjs/common';
-import { DatabaseService } from 'src/database/database.service';
+import {
+  Injectable,
+  NotFoundException,
+  HttpException,
+  ForbiddenException,
+} from '@nestjs/common';
+import { DatabaseService } from '../../database/database.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { v4 as createUuid } from 'uuid';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserEntity } from './interfaces/user.entity';
+import { StatusCodes } from 'http-status-codes';
 
 @Injectable()
 export class UserService {
@@ -13,6 +19,14 @@ export class UserService {
   }
 
   create(dto: CreateUserDto): UserEntity {
+    if (
+      !dto.login ||
+      typeof dto.login != 'string' ||
+      !dto.password ||
+      typeof dto.password != 'string'
+    ) {
+      throw new HttpException('Invalid data', StatusCodes.BAD_REQUEST);
+    }
     const id = createUuid();
     const date = Date.now();
     const user: UserEntity = new UserEntity({
@@ -34,21 +48,26 @@ export class UserService {
   findOne(id: string): UserEntity {
     const user = this.db.users.find((item) => item.id === id);
     if (!user) {
-      // to edit
-      throw new Error('Not found');
+      throw new NotFoundException('User not found');
     }
     return user;
   }
 
   update(id: string, dto: UpdateUserDto): UserEntity {
+    if (
+      !dto.oldPassword ||
+      typeof dto.oldPassword != 'string' ||
+      !dto.newPassword ||
+      typeof dto.newPassword != 'string'
+    ) {
+      throw new HttpException('Invalid data', StatusCodes.BAD_REQUEST);
+    }
     const user = this.findOne(id);
     if (!user) {
-      // to edit
-      throw new Error('Not found');
+      throw new NotFoundException('User not found');
     }
     if (user.password != dto.oldPassword) {
-      // to edit
-      throw new Error('Check password');
+      throw new ForbiddenException('Check old password');
     }
     user.password = dto.newPassword;
     user.version += 1;
@@ -59,8 +78,7 @@ export class UserService {
   delete(id: string) {
     const user = this.findOne(id);
     if (!user) {
-      // to edit
-      throw new Error('Not found');
+      throw new NotFoundException('User not found');
     }
     this.db.users = this.db.users.filter((item) => item.id != user.id);
   }
