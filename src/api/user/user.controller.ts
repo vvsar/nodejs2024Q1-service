@@ -11,8 +11,6 @@ import {
   Delete,
   HttpCode,
 } from '@nestjs/common';
-// import { Request } from 'express';
-// import { User } from './interfaces/user.interface.js';
 import { UserService } from './user.service.js';
 import { CreateUserDto } from './dto/create-user.dto.js';
 import { UserEntity } from './interfaces/user.entity.js';
