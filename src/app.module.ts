@@ -13,6 +13,9 @@ import { AlbumModule } from './api/album/album.module';
 import { ArtistModule } from './api/artist/artist.module';
 import { ArtistController } from './api/artist/artist.controller';
 import { ArtistService } from './api/artist/artist.service';
+import { TrackModule } from './api/track/track.module';
+import { TrackController } from './api/track/track.controller';
+import { TrackService } from './api/track/track.service';
 
 @Module({
   imports: [
@@ -23,12 +26,14 @@ import { ArtistService } from './api/artist/artist.service';
     DatabaseModule,
     AlbumModule,
     ArtistModule,
+    TrackModule,
   ],
   controllers: [
     AppController,
     UserController,
     AlbumController,
     ArtistController,
+    TrackController,
   ],
   providers: [
     AppService,
@@ -36,6 +41,7 @@ import { ArtistService } from './api/artist/artist.service';
     DatabaseService,
     AlbumService,
     ArtistService,
+    TrackService,
   ],
 })
 export class AppModule {}

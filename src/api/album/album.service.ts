@@ -87,6 +87,11 @@ export class AlbumService {
     if (!album) {
       throw new NotFoundException('Album not found');
     }
+    this.db.tracks.forEach((item) => {
+      if (item.artistId === id) {
+        item.artistId = null;
+      }
+    });
     this.db.albums = this.db.albums.filter((item) => item.id != album.id);
   }
 }
