@@ -7,6 +7,7 @@ import {
 import { DatabaseService } from '../../database/database.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { v4 as createUuid } from 'uuid';
+import { isUUID } from 'class-validator';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserEntity } from './interfaces/user.entity';
 import { StatusCodes } from 'http-status-codes';
@@ -46,6 +47,9 @@ export class UserService {
   }
 
   findOne(id: string): UserEntity {
+    if (!isUUID(id)) {
+      throw new HttpException('Invalid id', StatusCodes.BAD_REQUEST);
+    }
     const user = this.db.users.find((item) => item.id === id);
     if (!user) {
       throw new NotFoundException('User not found');
@@ -77,9 +81,6 @@ export class UserService {
 
   delete(id: string) {
     const user = this.findOne(id);
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
     this.db.users = this.db.users.filter((item) => item.id != user.id);
   }
 }

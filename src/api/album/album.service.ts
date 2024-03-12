@@ -24,7 +24,7 @@ export class AlbumService {
       !dto.year ||
       typeof dto.year != 'number' ||
       !dto.artistId ||
-      isUUID(dto.artistId)
+      !isUUID(dto.artistId)
     ) {
       throw new HttpException('Invalid data', StatusCodes.BAD_REQUEST);
     }
@@ -32,7 +32,7 @@ export class AlbumService {
       dto.artistId,
       DatabaseEntities.Artists,
     );
-    if (dto.artistId && !artistExists) {
+    if (!artistExists) {
       throw new NotFoundException('Artist not found');
     }
     const id = createUuid();
@@ -51,6 +51,9 @@ export class AlbumService {
   }
 
   findOne(id: string): Album {
+    if (!isUUID(id)) {
+      throw new HttpException('Invalid id', StatusCodes.BAD_REQUEST);
+    }
     const album = this.db.albums.find((item) => item.id === id);
     if (!album) {
       throw new NotFoundException('Album not found');
@@ -62,7 +65,7 @@ export class AlbumService {
     if (
       (dto.name && typeof dto.name != 'string') ||
       (dto.year && typeof dto.year != 'number') ||
-      (dto.artistId && isUUID(dto.artistId))
+      (dto.artistId && !isUUID(dto.artistId))
     ) {
       throw new HttpException('Invalid data', StatusCodes.BAD_REQUEST);
     }
@@ -84,9 +87,6 @@ export class AlbumService {
 
   delete(id: string) {
     const album = this.findOne(id);
-    if (!album) {
-      throw new NotFoundException('Album not found');
-    }
     this.db.tracks.forEach((item) => {
       if (item.artistId === id) {
         item.artistId = null;

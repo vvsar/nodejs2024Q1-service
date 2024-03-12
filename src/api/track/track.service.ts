@@ -24,9 +24,9 @@ export class TrackService {
       !dto.duration ||
       typeof dto.duration != 'number' ||
       !dto.artistId ||
-      isUUID(dto.artistId) ||
+      !isUUID(dto.artistId) ||
       !dto.albumId ||
-      isUUID(dto.albumId)
+      !isUUID(dto.albumId)
     ) {
       throw new HttpException('Invalid data', StatusCodes.BAD_REQUEST);
     }
@@ -34,14 +34,14 @@ export class TrackService {
       dto.artistId,
       DatabaseEntities.Artists,
     );
-    if (dto.artistId && !artistExists) {
+    if (!artistExists) {
       throw new NotFoundException('Artist not found');
     }
     const albumExists = this.db.checkEntityExistence(
       dto.albumId,
       DatabaseEntities.Albums,
     );
-    if (dto.albumId && !albumExists) {
+    if (!albumExists) {
       throw new NotFoundException('Album not found');
     }
     const id = createUuid();
@@ -61,6 +61,9 @@ export class TrackService {
   }
 
   findOne(id: string): Track {
+    if (!isUUID(id)) {
+      throw new HttpException('Invalid id', StatusCodes.BAD_REQUEST);
+    }
     const track = this.db.tracks.find((item) => item.id === id);
     if (!track) {
       throw new NotFoundException('Track not found');
@@ -97,13 +100,7 @@ export class TrackService {
   }
 
   delete(id: string) {
-    if (!isUUID(id)) {
-      throw new HttpException('Invalid id', StatusCodes.BAD_REQUEST);
-    }
     const track = this.findOne(id);
-    if (!track) {
-      throw new NotFoundException('Album not found');
-    }
     this.db.tracks = this.db.tracks.filter((item) => item.id != track.id);
   }
 }

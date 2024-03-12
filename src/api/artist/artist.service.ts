@@ -38,6 +38,9 @@ export class ArtistService {
   }
 
   findOne(id: string): Artist {
+    if (!isUUID(id)) {
+      throw new HttpException('Invalid id', StatusCodes.BAD_REQUEST);
+    }
     const artist = this.db.artists.find((item) => item.id === id);
     if (!artist) {
       throw new NotFoundException('Artist not found');
@@ -46,21 +49,20 @@ export class ArtistService {
   }
 
   update(id: string, dto: UpdateArtistDto): Artist {
+    const artist = this.findOne(id);
+    const keys = Object.keys(dto);
+    const nameIsGiven = keys.find((item) => item === 'name');
+    const grammyIsGiven = keys.find((item) => item === 'grammy');
     if (
-      !isUUID(id) ||
-      (dto.name && typeof dto.name != 'string') ||
-      (dto.grammy && typeof dto.grammy != 'boolean')
+      (nameIsGiven && typeof dto.name != 'string') ||
+      (grammyIsGiven && typeof dto.grammy != 'boolean')
     ) {
       throw new HttpException('Invalid data', StatusCodes.BAD_REQUEST);
     }
-    const artist = this.findOne(id);
-    if (!artist) {
-      throw new NotFoundException('Artist not found');
-    }
-    if (dto.name) {
+    if (nameIsGiven) {
       artist.name = dto.name;
     }
-    if (dto.grammy) {
+    if (grammyIsGiven) {
       artist.grammy = dto.grammy;
     }
     return artist;
@@ -68,10 +70,12 @@ export class ArtistService {
 
   delete(id: string) {
     const artist = this.findOne(id);
-    if (!artist) {
-      throw new NotFoundException('Artist not found');
-    }
     this.db.albums.forEach((item) => {
+      if (item.artistId === id) {
+        item.artistId = null;
+      }
+    });
+    this.db.tracks.forEach((item) => {
       if (item.artistId === id) {
         item.artistId = null;
       }
