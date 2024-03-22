@@ -9,6 +9,7 @@ info:
 
 components:
   schemas:
+  
     User:
       type: object
       properties:
@@ -23,10 +24,10 @@ components:
           example: 1
         createAt:
           type: number
-          example: 1655000000
+          example: 1456000000
         updateAt:
           type: number
-          example: 1655000000
+          example: 1456000000
       required:
         - id
         - login
@@ -107,88 +108,8 @@ components:
   responses:
     UnauthorizedError:
       description: Access token is missing or invalid
-  securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
-
-security:
-  - bearerAuth: []
 
 paths:
-  /login:
-    post:
-      tags:
-        - Login
-      security: []
-      summary: Login
-      description: Logins a user and returns a JWT-token
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              title: example
-              properties:
-                login:
-                  type: string
-                  description: Username
-                password:
-                  type: string
-                  description: Password
-              required:
-                - user
-                - login
-      responses:
-        200:
-          description: Successful login.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  token:
-                    type: string
-                description: JWT Token
-        403:
-          description: Incorrect login or password
-  /signup:
-    post:
-      tags:
-        - Signup
-      security: []
-      summary: Signup
-      description: Signup a user
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              title: example
-              properties:
-                login:
-                  type: string
-                  minLength: 3
-                  maxLength: 255
-                  description: Username
-                password:
-                  type: string
-                  format: password
-                  pattern: ^[a-zA-Z0-9]{3,30}
-                  description: Password
-              required:
-                - login
-                - password
-      responses:
-        204:
-          description: Successful signup
-        400:
-          description: Bad request
-        409:
-          description: Conflict. Login already exists
   /user:
     get:
       tags:
@@ -204,8 +125,6 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/User'
-        401:
-          $ref: '#/components/responses/UnauthorizedError'
     post:
       tags:
         - Users
@@ -237,8 +156,6 @@ paths:
                 $ref: '#/components/schemas/User'
         400:
           description: Bad request. body does not contain required fields
-        401:
-          $ref: '#/components/responses/UnauthorizedError'
   /user/{userId}:
     parameters:
       - name: userId
@@ -259,9 +176,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/User'
         400:
-          description: Bad request. userId is invalid (not uuid)
-        401:
-          $ref: '#/components/responses/UnauthorizedError'
+          description: invalid id
         404:
           description: User not found
 
@@ -312,9 +227,7 @@ paths:
                     type: integer
                     example: 1655999999
         400:
-          description: Bad request. userId is invalid (not uuid)
-        401:
-          $ref: '#/components/responses/UnauthorizedError'
+          description: invalid id
         403:
           description: oldPassword is wrong
         404:
@@ -329,12 +242,10 @@ paths:
         204:
           description: The user has been deleted
         400:
-          description: Bad request. userId is invalid (not uuid)
-        401:
-          $ref: '#/components/responses/UnauthorizedError'
+          description: invalid id
         404:
           description: User not found
-  /tracks:
+  /track:
     get:
       tags:
         - Track
@@ -349,8 +260,6 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Track'
-        401:
-          $ref: '#/components/responses/UnauthorizedError'
     post:
       tags:
         - Track
@@ -386,9 +295,9 @@ paths:
                 $ref: '#/components/schemas/Track'
         400:
           description: Bad request. body does not contain required fields
-        401:
-          $ref: '#/components/responses/UnauthorizedError'
-  /tracks/{id}:
+        404:
+          description: AlbumId or ArtistId does not exist
+  /track/{id}:
     parameters:
       - name: id
         in: path
@@ -409,11 +318,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/Track'
         400:
-          description: Bad request. trackId is invalid (not uuid)
-        401:
-          $ref: '#/components/responses/UnauthorizedError'
+          description: invalid id
         404:
-          description: Track was not found.
+          description: Track not found.
     put:
       tags:
         - Track
@@ -473,11 +380,11 @@ paths:
                     format: uuid
                     nullable: true
         400:
-          description: Bad request. trackId is invalid (not uuid)
-        401:
-          $ref: '#/components/responses/UnauthorizedError'
+          description: invalid id
         404:
-          description: Track was not found.
+          description: Track not found.
+        404:
+          description: AlbumId or ArtistId does not exist
     delete:
       tags:
         - Track
@@ -487,11 +394,9 @@ paths:
         204:
           description: Deleted successfully
         400:
-          description: Bad request. trackId is invalid (not uuid)
-        401:
-          $ref: '#/components/responses/UnauthorizedError'
+          description: invalid id
         404:
-          description: Track was not found.
+          description: Track not found.
   /album:
     get:
       tags:
@@ -507,8 +412,6 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Album'
-        401:
-          $ref: '#/components/responses/UnauthorizedError'
     post:
       tags:
         - Album
@@ -542,8 +445,8 @@ paths:
                 $ref: '#/components/schemas/Album'
         400:
           description: Bad request. body does not contain required fields
-        401:
-          $ref: '#/components/responses/UnauthorizedError'
+        404:
+          description: ArtistId does not exist
   /album/{id}:
     parameters:
       - name: id
@@ -565,11 +468,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/Album'
         400:
-          description: Bad request. albumId is invalid (not uuid)
-        401:
-          $ref: '#/components/responses/UnauthorizedError'
+          description: invalid id
         404:
-          description: Album was not found.
+          description: Album not found.
     put:
       tags:
         - Album
@@ -602,11 +503,11 @@ paths:
               schema:
                 $ref: '#/components/schemas/Album'
         400:
-          description: Bad request. albumId is invalid (not uuid)
-        401:
-          $ref: '#/components/responses/UnauthorizedError'
+          description: invalid id
         404:
           description: Album was not found.
+        404:
+          description: ArtistId doesn't exist
     delete:
       tags:
         - Album
@@ -616,12 +517,10 @@ paths:
         204:
           description: Deleted successfully
         400:
-          description: Bad request. albumId is invalid (not uuid)
-        401:
-          $ref: '#/components/responses/UnauthorizedError'
+          description: invalid id
         404:
-          description: Album was not found.
-  /artists:
+          description: Album not found.
+  /artist:
     get:
       tags:
         - Artist
@@ -668,7 +567,7 @@ paths:
           description: Bad request. body does not contain required fields
         401:
           $ref: '#/components/responses/UnauthorizedError'
-  /artists/{id}:
+  /artist/{id}:
     parameters:
       - name: id
         in: path
@@ -689,11 +588,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/Artist'
         400:
-          description: Bad request. artistId is invalid (not uuid)
-        401:
-          $ref: '#/components/responses/UnauthorizedError'
+          description: invalid id
         404:
-          description: Artist was not found.
+          description: Artist not found.
     put:
       tags:
         - Artist
@@ -721,9 +618,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Artist'
         400:
-          description: Bad request. artistId is invalid (not uuid)
-        401:
-          $ref: '#/components/responses/UnauthorizedError'
+          description: invalid id
         404:
           description: Artist was not found.
     delete:
@@ -735,11 +630,9 @@ paths:
         204:
           description: Deleted successfully
         400:
-          description: Bad request. artistId is invalid (not uuid)
-        401:
-          $ref: '#/components/responses/UnauthorizedError'
+          description: invalid id
         404:
-          description: Artist was not found.
+          description: Artist not found.
   /favs:
     get:
       tags:
@@ -753,8 +646,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Favorites'
-        401:
-          $ref: '#/components/responses/UnauthorizedError'
   /favs/track/{id}:
     parameters:
       - name: id
@@ -772,9 +663,7 @@ paths:
         201:
           description: Added successfully
         400:
-          description: Bad. trackId is invalid (not uuid)
-        401:
-          $ref: '#/components/responses/UnauthorizedError'
+          description: invalid id
         422:
           description: Track with id doesn't exist.
     delete:
@@ -786,11 +675,9 @@ paths:
         204:
           description: Deleted successfully
         400:
-          description: Bad. trackId is invalid (not uuid)
-        401:
-          $ref: '#/components/responses/UnauthorizedError'
+          description: invalid id
         404:
-          description: Track was not found.
+          description: Track not found.
   /favs/album/{id}:
     parameters:
       - name: id
@@ -808,9 +695,7 @@ paths:
         201:
           description: Added successfully
         400:
-          description: Bad. albumId is invalid (not uuid)
-        401:
-          $ref: '#/components/responses/UnauthorizedError'
+          description: invalid id
         422:
           description: Album with id doesn't exist.
     delete:
@@ -822,11 +707,9 @@ paths:
         204:
           description: Deleted successfully
         400:
-          description: Bad. albumId is invalid (not uuid)
-        401:
-          $ref: '#/components/responses/UnauthorizedError'
+          description: invalid id
         404:
-          description: Album was not found.
+          description: Album not found.
   /favs/artist/{id}:
     parameters:
       - name: id
@@ -844,9 +727,7 @@ paths:
         201:
           description: Added successfully
         400:
-          description: Bad request. artistId is invalid (not uuid)
-        401:
-          $ref: '#/components/responses/UnauthorizedError'
+          description: invalid id
         422:
           description: Artist with id doesn't exist.
     delete:
@@ -858,8 +739,6 @@ paths:
         204:
           description: Deleted successfully
         400:
-          description: Bad request. artistId is invalid (not uuid)
-        401:
-          $ref: '#/components/responses/UnauthorizedError'
+          description: invalid id
         404:
-          description: Artist was not found.
+          description: Artist not found.

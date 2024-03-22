@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Album } from 'src/api/album/interfaces/album.interface';
 import { Artist } from 'src/api/artist/interfaces/artist.interface';
 import { Track } from 'src/api/track/interfaces/track.interface';
+import { Favorites } from 'src/api/favs/interfaces/fav.interface';
 import { UserEntity } from 'src/api/user/interfaces/user.entity';
 
 export const enum DatabaseEntities {
@@ -17,6 +18,11 @@ export class DatabaseService {
   albums: Album[] = [];
   artists: Artist[] = [];
   tracks: Track[] = [];
+  favorites: Favorites = {
+    artists: [],
+    albums: [],
+    tracks: [],
+  };
 
   checkEntityExistence(id: string, type: DatabaseEntities): boolean {
     if (id) {

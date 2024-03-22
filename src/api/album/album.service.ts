@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, HttpException } from '@nestjs/common';
 import {
   DatabaseService,
-  DatabaseEntities,
+  // DatabaseEntities,
 } from '../../database/database.service';
 import { v4 as createUuid } from 'uuid';
 import { isUUID } from 'class-validator';
@@ -22,19 +22,17 @@ export class AlbumService {
       !dto.name ||
       typeof dto.name != 'string' ||
       !dto.year ||
-      typeof dto.year != 'number' ||
-      !dto.artistId ||
-      !isUUID(dto.artistId)
+      typeof dto.year != 'number'
     ) {
       throw new HttpException('Invalid data', StatusCodes.BAD_REQUEST);
     }
-    const artistExists = this.db.checkEntityExistence(
-      dto.artistId,
-      DatabaseEntities.Artists,
-    );
-    if (!artistExists) {
-      throw new NotFoundException('Artist not found');
-    }
+    // const artistExists = this.db.checkEntityExistence(
+    //   dto.artistId,
+    //   DatabaseEntities.Artists,
+    // );
+    // if (!artistExists) {
+    //   throw new NotFoundException('Artist not found');
+    // }
     const id = createUuid();
     const album: Album = {
       id: id,
@@ -88,8 +86,8 @@ export class AlbumService {
   delete(id: string) {
     const album = this.findOne(id);
     this.db.tracks.forEach((item) => {
-      if (item.artistId === id) {
-        item.artistId = null;
+      if (item.albumId === id) {
+        item.albumId = null;
       }
     });
     this.db.albums = this.db.albums.filter((item) => item.id != album.id);

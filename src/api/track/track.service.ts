@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, HttpException } from '@nestjs/common';
 import {
   DatabaseService,
-  DatabaseEntities,
+  // DatabaseEntities,
 } from '../../database/database.service';
 import { v4 as createUuid } from 'uuid';
 import { isUUID } from 'class-validator';
@@ -22,28 +22,24 @@ export class TrackService {
       !dto.name ||
       typeof dto.name != 'string' ||
       !dto.duration ||
-      typeof dto.duration != 'number' ||
-      !dto.artistId ||
-      !isUUID(dto.artistId) ||
-      !dto.albumId ||
-      !isUUID(dto.albumId)
+      typeof dto.duration != 'number'
     ) {
       throw new HttpException('Invalid data', StatusCodes.BAD_REQUEST);
     }
-    const artistExists = this.db.checkEntityExistence(
-      dto.artistId,
-      DatabaseEntities.Artists,
-    );
-    if (!artistExists) {
-      throw new NotFoundException('Artist not found');
-    }
-    const albumExists = this.db.checkEntityExistence(
-      dto.albumId,
-      DatabaseEntities.Albums,
-    );
-    if (!albumExists) {
-      throw new NotFoundException('Album not found');
-    }
+    // const artistExists = this.db.checkEntityExistence(
+    //   dto.artistId,
+    //   DatabaseEntities.Artists,
+    // );
+    // if (!artistExists) {
+    //   throw new NotFoundException('Artist not found');
+    // }
+    // const albumExists = this.db.checkEntityExistence(
+    //   dto.albumId,
+    //   DatabaseEntities.Albums,
+    // );
+    // if (!albumExists) {
+    //   throw new NotFoundException('Album not found');
+    // }
     const id = createUuid();
     const track: Track = {
       id: id,
