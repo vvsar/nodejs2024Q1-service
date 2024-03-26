@@ -4,7 +4,8 @@ import {
   HttpException,
   ForbiddenException,
 } from '@nestjs/common';
-import { DatabaseService } from '../../database/database.service';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { v4 as createUuid } from 'uuid';
 import { isUUID } from 'class-validator';
@@ -14,50 +15,51 @@ import { StatusCodes } from 'http-status-codes';
 
 @Injectable()
 export class UserService {
-  db: DatabaseService;
-  constructor(database: DatabaseService) {
-    this.db = database;
-  }
+  constructor(
+    @InjectRepository(UserEntity) private userRepo: Repository<UserEntity>,
+  ) {}
 
-  create(dto: CreateUserDto): UserEntity {
+  create(dto: CreateUserDto) {
+    const { login, password } = dto;
     if (
-      !dto.login ||
-      typeof dto.login != 'string' ||
-      !dto.password ||
-      typeof dto.password != 'string'
+      !login ||
+      typeof login != 'string' ||
+      !password ||
+      typeof password != 'string'
     ) {
       throw new HttpException('Invalid data', StatusCodes.BAD_REQUEST);
     }
     const id = createUuid();
     const date = Date.now();
-    const user: UserEntity = new UserEntity({
-      id: id,
-      login: dto.login,
-      password: dto.password,
+
+    const entity = this.userRepo.create({
+      id,
+      login,
+      password,
       version: 1,
       createdAt: date,
       updatedAt: date,
     });
-    this.db.users.push(user);
-    return user;
+
+    return this.userRepo.save(entity);
   }
 
-  findAll(): UserEntity[] {
-    return this.db.users;
+  findAll(): Promise<UserEntity[]> {
+    return this.userRepo.find();
   }
 
-  findOne(id: string): UserEntity {
+  findOne(id: string): Promise<UserEntity | null> {
     if (!isUUID(id)) {
       throw new HttpException('Invalid id', StatusCodes.BAD_REQUEST);
     }
-    const user = this.db.users.find((item) => item.id === id);
+    const user = this.userRepo.findOneBy({ id });
     if (!user) {
       throw new NotFoundException('User not found');
     }
     return user;
   }
 
-  update(id: string, dto: UpdateUserDto): UserEntity {
+  async update(id: string, dto: UpdateUserDto): Promise<UserEntity> {
     if (
       !dto.oldPassword ||
       typeof dto.oldPassword != 'string' ||
@@ -66,7 +68,7 @@ export class UserService {
     ) {
       throw new HttpException('Invalid data', StatusCodes.BAD_REQUEST);
     }
-    const user = this.findOne(id);
+    const user = await this.findOne(id);
     if (!user) {
       throw new NotFoundException('User not found');
     }
@@ -76,11 +78,11 @@ export class UserService {
     user.password = dto.newPassword;
     user.version += 1;
     user.updatedAt = Date.now();
-    return user;
+    return this.userRepo.save({ ...user, ...dto });
   }
 
-  delete(id: string) {
-    const user = this.findOne(id);
-    this.db.users = this.db.users.filter((item) => item.id != user.id);
+  async delete(id: string): Promise<UserEntity> {
+    const user = await this.findOne(id);
+    return this.userRepo.remove(user);
   }
 }

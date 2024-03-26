@@ -16,7 +16,9 @@ import { CreateUserDto } from './dto/create-user.dto.js';
 import { UserEntity } from './interfaces/user.entity.js';
 import { UpdateUserDto } from './dto/update-user.dto.js';
 import { StatusCodes } from 'http-status-codes';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Users')
 @Controller('user')
 @UseInterceptors(ClassSerializerInterceptor)
 export class UserController {
@@ -26,27 +28,30 @@ export class UserController {
   }
 
   @Get()
-  findAll() {
+  findAll(): Promise<UserEntity[]> {
     return this.userService.findAll();
   }
 
   @Get(':id')
   findOne(
     @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
-  ): UserEntity {
+  ): Promise<UserEntity> {
     return this.userService.findOne(id);
   }
 
   @Post()
-  create(@Body() dto: CreateUserDto): UserEntity {
-    return this.userService.create(dto);
+  async create(@Body() dto: CreateUserDto) {
+    console.log('Method POST called');
+    const entity = await this.userService.create(dto);
+    console.log(entity);
+    return entity;
   }
 
   @Put(':id')
   update(
     @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
     @Body() dto: UpdateUserDto,
-  ): UserEntity {
+  ): Promise<UserEntity> {
     return this.userService.update(id, dto);
   }
 
