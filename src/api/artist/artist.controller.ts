@@ -17,26 +17,22 @@ import { StatusCodes } from 'http-status-codes';
 
 @Controller('artist')
 export class ArtistController {
-  artistService: ArtistService;
-
-  constructor(artistService: ArtistService) {
-    this.artistService = artistService;
-  }
+  constructor(private artistService: ArtistService) {}
 
   @Get()
-  findAll() {
-    return this.artistService.findAll();
+  async findAll() {
+    const entities = await this.artistService.findAll();
+    return entities;
   }
 
   @Get(':id')
-  findOne(
-    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
-  ): Artist {
+  async findOne(@Param('id', new ParseUUIDPipe({ version: '4' })) id: string) {
     return this.artistService.findOne(id);
   }
 
   @Post()
-  create(@Body() dto: CreateArtistDto): Artist {
+  @HttpCode(StatusCodes.CREATED)
+  async create(@Body() dto: CreateArtistDto) {
     return this.artistService.create(dto);
   }
 
@@ -44,7 +40,7 @@ export class ArtistController {
   update(
     @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
     @Body() dto: UpdateArtistDto,
-  ): Artist {
+  ) {
     return this.artistService.update(id, dto);
   }
 

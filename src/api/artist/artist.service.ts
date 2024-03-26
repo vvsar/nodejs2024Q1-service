@@ -1,55 +1,59 @@
 import { Injectable, NotFoundException, HttpException } from '@nestjs/common';
-import { DatabaseService } from '../../database/database.service';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { v4 as createUuid } from 'uuid';
 import { isUUID } from 'class-validator';
-import { Artist } from './interfaces/artist.interface';
 import { CreateArtistDto } from './dto/create-artist.dto';
 import { UpdateArtistDto } from './dto/update-artist.dto';
 import { StatusCodes } from 'http-status-codes';
+import { ArtistEntity } from './interfaces/artist.entity';
 
 @Injectable()
 export class ArtistService {
-  db: DatabaseService;
-  constructor(database: DatabaseService) {
-    this.db = database;
-  }
+  constructor(
+    @InjectRepository(ArtistEntity)
+    private artistRepo: Repository<ArtistEntity>,
+  ) {}
 
   create(dto: CreateArtistDto) {
+    const { name, grammy } = dto;
     if (
-      !dto.name ||
-      typeof dto.name != 'string' ||
-      !dto.grammy ||
-      typeof dto.grammy != 'boolean'
+      !name ||
+      typeof name != 'string' ||
+      !grammy ||
+      typeof grammy != 'boolean'
     ) {
       throw new HttpException('Invalid data', StatusCodes.BAD_REQUEST);
     }
     const id = createUuid();
-    const artist: Artist = {
+    const entity = this.artistRepo.create({
       id: id,
-      name: dto.name,
-      grammy: dto.grammy,
-    };
-    this.db.artists.push(artist);
-    return artist;
+      name: name,
+      grammy: grammy,
+    });
+    return this.artistRepo.save(entity);
   }
 
   findAll() {
-    return this.db.artists;
+    return this.artistRepo.find();
   }
 
-  findOne(id: string): Artist {
+  async findOne(id: string) {
     if (!isUUID(id)) {
       throw new HttpException('Invalid id', StatusCodes.BAD_REQUEST);
     }
-    const artist = this.db.artists.find((item) => item.id === id);
+    const artist = await this.artistRepo.findOneBy({ id });
     if (!artist) {
       throw new NotFoundException('Artist not found');
     }
     return artist;
   }
 
-  update(id: string, dto: UpdateArtistDto): Artist {
-    const artist = this.findOne(id);
+  async update(id: string, dto: UpdateArtistDto) {
+    const artist = await this.artistRepo.findOneBy({ id });
+    if (!artist) {
+      throw new NotFoundException('Artist not found');
+    }
     const keys = Object.keys(dto);
     const nameIsGiven = keys.find((item) => item === 'name');
     const grammyIsGiven = keys.find((item) => item === 'grammy');
@@ -65,21 +69,24 @@ export class ArtistService {
     if (grammyIsGiven) {
       artist.grammy = dto.grammy;
     }
-    return artist;
+    return this.artistRepo.save({ ...artist, ...dto });
   }
 
-  delete(id: string) {
-    const artist = this.findOne(id);
-    this.db.albums.forEach((item) => {
-      if (item.artistId === id) {
-        item.artistId = null;
-      }
-    });
-    this.db.tracks.forEach((item) => {
-      if (item.artistId === id) {
-        item.artistId = null;
-      }
-    });
-    this.db.artists = this.db.artists.filter((item) => item.id != artist.id);
+  async delete(id: string) {
+    const artist = await this.artistRepo.findOneBy({ id });
+    // this.db.albums.forEach((item) => {
+    //   if (item.artistId === id) {
+    //     item.artistId = null;
+    //   }
+    // });
+    // this.db.tracks.forEach((item) => {
+    //   if (item.artistId === id) {
+    //     item.artistId = null;
+    //   }
+    // });
+    if (!artist) {
+      throw new NotFoundException('User not found');
+    }
+    return this.artistRepo.remove(artist);
   }
 }
