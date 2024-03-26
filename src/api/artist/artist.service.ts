@@ -63,27 +63,11 @@ export class ArtistService {
     ) {
       throw new HttpException('Invalid data', StatusCodes.BAD_REQUEST);
     }
-    // if (nameIsGiven) {
-    //   artist.name = dto.name;
-    // }
-    // if (grammyIsGiven) {
-    //   artist.grammy = dto.grammy;
-    // }
     return this.artistRepo.save({ ...artist, ...dto });
   }
 
   async delete(id: string) {
     const artist = await this.artistRepo.findOneBy({ id });
-    // this.db.albums.forEach((item) => {
-    //   if (item.artistId === id) {
-    //     item.artistId = null;
-    //   }
-    // });
-    // this.db.tracks.forEach((item) => {
-    //   if (item.artistId === id) {
-    //     item.artistId = null;
-    //   }
-    // });
     if (!artist) {
       throw new NotFoundException('User not found');
     }

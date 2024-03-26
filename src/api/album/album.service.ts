@@ -1,21 +1,18 @@
 import { Injectable, NotFoundException, HttpException } from '@nestjs/common';
-import {
-  DatabaseService,
-  // DatabaseEntities,
-} from '../../database/database.service';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { v4 as createUuid } from 'uuid';
 import { isUUID } from 'class-validator';
-import { Album } from './interfaces/album.interface';
 import { CreateAlbumDto } from './dto/create-album.dto';
 import { UpdateAlbumDto } from './dto/update-album.dto';
 import { StatusCodes } from 'http-status-codes';
+import { AlbumEntity } from './interfaces/album.entity';
 
 @Injectable()
 export class AlbumService {
-  db: DatabaseService;
-  constructor(database: DatabaseService) {
-    this.db = database;
-  }
+  constructor(
+    @InjectRepository(AlbumEntity) private albumRepo: Repository<AlbumEntity>,
+  ) {}
 
   create(dto: CreateAlbumDto) {
     if (
@@ -26,40 +23,33 @@ export class AlbumService {
     ) {
       throw new HttpException('Invalid data', StatusCodes.BAD_REQUEST);
     }
-    // const artistExists = this.db.checkEntityExistence(
-    //   dto.artistId,
-    //   DatabaseEntities.Artists,
-    // );
-    // if (!artistExists) {
-    //   throw new NotFoundException('Artist not found');
-    // }
+
     const id = createUuid();
-    const album: Album = {
+    const entity = this.albumRepo.create({
       id: id,
       name: dto.name,
       year: dto.year,
       artistId: dto.artistId,
-    };
-    this.db.albums.push(album);
-    return album;
+    });
+    return this.albumRepo.save(entity);
   }
 
   findAll() {
-    return this.db.albums;
+    return this.albumRepo.find();
   }
 
-  findOne(id: string): Album {
+  async findOne(id: string) {
     if (!isUUID(id)) {
       throw new HttpException('Invalid id', StatusCodes.BAD_REQUEST);
     }
-    const album = this.db.albums.find((item) => item.id === id);
+    const album = await this.albumRepo.findOneBy({ id });
     if (!album) {
       throw new NotFoundException('Album not found');
     }
     return album;
   }
 
-  update(id: string, dto: UpdateAlbumDto): Album {
+  async update(id: string, dto: UpdateAlbumDto) {
     if (
       (dto.name && typeof dto.name != 'string') ||
       (dto.year && typeof dto.year != 'number') ||
@@ -67,29 +57,18 @@ export class AlbumService {
     ) {
       throw new HttpException('Invalid data', StatusCodes.BAD_REQUEST);
     }
-    const album = this.findOne(id);
+    const album = await this.albumRepo.findOneBy({ id });
     if (!album) {
       throw new NotFoundException('Album not found');
     }
-    if (dto.name) {
-      album.name = dto.name;
-    }
-    if (dto.year) {
-      album.year = dto.year;
-    }
-    if (dto.artistId) {
-      album.artistId = dto.artistId;
-    }
-    return album;
+    return this.albumRepo.save({ ...album, ...dto });
   }
 
-  delete(id: string) {
-    const album = this.findOne(id);
-    this.db.tracks.forEach((item) => {
-      if (item.albumId === id) {
-        item.albumId = null;
-      }
-    });
-    this.db.albums = this.db.albums.filter((item) => item.id != album.id);
+  async delete(id: string) {
+    const album = await this.albumRepo.findOneBy({ id });
+    if (!album) {
+      throw new NotFoundException('Album not found');
+    }
+    return this.albumRepo.remove(album);
   }
 }

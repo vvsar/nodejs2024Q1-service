@@ -1,4 +1,4 @@
-import { Track } from './track.interface';
+import { Album } from './album.interface';
 import {
   Column,
   Entity,
@@ -7,10 +7,9 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { ArtistEntity } from 'src/api/artist/interfaces/artist.entity';
-import { AlbumEntity } from 'src/api/album/interfaces/album.entity';
 
 @Entity()
-export class TrackEntity implements Track {
+export class AlbumEntity implements Album {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
@@ -18,7 +17,7 @@ export class TrackEntity implements Track {
   name: string;
 
   @Column()
-  duration: number;
+  year: number;
 
   @Column({
     type: 'uuid',
@@ -29,14 +28,4 @@ export class TrackEntity implements Track {
   })
   @JoinColumn({ name: 'artistId' })
   artistId: string | null;
-
-  @Column({
-    type: 'uuid',
-    nullable: true,
-  })
-  @OneToOne(() => AlbumEntity, {
-    onDelete: 'SET NULL',
-  })
-  @JoinColumn({ name: 'albumId' })
-  albumId: string | null;
 }

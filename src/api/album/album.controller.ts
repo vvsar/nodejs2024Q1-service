@@ -10,31 +10,27 @@ import {
   HttpCode,
 } from '@nestjs/common';
 import { AlbumService } from './album.service';
-import { Album } from './interfaces/album.interface';
 import { CreateAlbumDto } from './dto/create-album.dto';
 import { UpdateAlbumDto } from './dto/update-album.dto';
 import { StatusCodes } from 'http-status-codes';
 
 @Controller('album')
 export class AlbumController {
-  albumService: AlbumService;
-
-  constructor(albumService: AlbumService) {
-    this.albumService = albumService;
-  }
+  constructor(private albumService: AlbumService) {}
 
   @Get()
-  findAll() {
-    return this.albumService.findAll();
+  async findAll() {
+    return await this.albumService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id', new ParseUUIDPipe({ version: '4' })) id: string): Album {
+  async findOne(@Param('id', new ParseUUIDPipe({ version: '4' })) id: string) {
     return this.albumService.findOne(id);
   }
 
   @Post()
-  create(@Body() dto: CreateAlbumDto): Album {
+  @HttpCode(StatusCodes.CREATED)
+  create(@Body() dto: CreateAlbumDto) {
     return this.albumService.create(dto);
   }
 
@@ -42,7 +38,7 @@ export class AlbumController {
   update(
     @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
     @Body() dto: UpdateAlbumDto,
-  ): Album {
+  ) {
     return this.albumService.update(id, dto);
   }
 

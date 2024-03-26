@@ -3,7 +3,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { v4 as createUuid } from 'uuid';
 import { isUUID } from 'class-validator';
-import { Track } from './interfaces/track.interface';
 import { CreateTrackDto } from './dto/create-track.dto';
 import { UpdateTrackDto } from './dto/update-track.dto';
 import { StatusCodes } from 'http-status-codes';
@@ -26,13 +25,6 @@ export class TrackService {
     }
 
     const id = createUuid();
-    // const track: Track = {
-    //   id: id,
-    //   name: dto.name,
-    //   duration: dto.duration,
-    //   artistId: dto.artistId,
-    //   albumId: dto.albumId,
-    // };
     const entity = this.trackRepo.create({
       id: id,
       name: dto.name,
@@ -71,18 +63,6 @@ export class TrackService {
     if (!track) {
       throw new NotFoundException('Album not found');
     }
-    // if (dto.name) {
-    //   track.name = dto.name;
-    // }
-    // if (dto.duration) {
-    //   track.duration = dto.duration;
-    // }
-    // if (dto.artistId) {
-    //   track.artistId = dto.artistId;
-    // }
-    // if (dto.albumId) {
-    //   track.albumId = dto.albumId;
-    // }
     return this.trackRepo.save({ ...track, ...dto });
   }
 
