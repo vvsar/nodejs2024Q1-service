@@ -1,21 +1,19 @@
 import { Injectable, NotFoundException, HttpException } from '@nestjs/common';
-import {
-  DatabaseService,
-  // DatabaseEntities,
-} from '../../database/database.service';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { v4 as createUuid } from 'uuid';
 import { isUUID } from 'class-validator';
 import { Track } from './interfaces/track.interface';
 import { CreateTrackDto } from './dto/create-track.dto';
 import { UpdateTrackDto } from './dto/update-track.dto';
 import { StatusCodes } from 'http-status-codes';
+import { TrackEntity } from './interfaces/track.entity';
 
 @Injectable()
 export class TrackService {
-  db: DatabaseService;
-  constructor(database: DatabaseService) {
-    this.db = database;
-  }
+  constructor(
+    @InjectRepository(TrackEntity) private trackRepo: Repository<TrackEntity>,
+  ) {}
 
   create(dto: CreateTrackDto) {
     if (
@@ -26,48 +24,41 @@ export class TrackService {
     ) {
       throw new HttpException('Invalid data', StatusCodes.BAD_REQUEST);
     }
-    // const artistExists = this.db.checkEntityExistence(
-    //   dto.artistId,
-    //   DatabaseEntities.Artists,
-    // );
-    // if (!artistExists) {
-    //   throw new NotFoundException('Artist not found');
-    // }
-    // const albumExists = this.db.checkEntityExistence(
-    //   dto.albumId,
-    //   DatabaseEntities.Albums,
-    // );
-    // if (!albumExists) {
-    //   throw new NotFoundException('Album not found');
-    // }
+
     const id = createUuid();
-    const track: Track = {
+    // const track: Track = {
+    //   id: id,
+    //   name: dto.name,
+    //   duration: dto.duration,
+    //   artistId: dto.artistId,
+    //   albumId: dto.albumId,
+    // };
+    const entity = this.trackRepo.create({
       id: id,
       name: dto.name,
       duration: dto.duration,
       artistId: dto.artistId,
       albumId: dto.albumId,
-    };
-    this.db.tracks.push(track);
-    return track;
+    });
+    return this.trackRepo.save(entity);
   }
 
   findAll() {
-    return this.db.tracks;
+    return this.trackRepo.find();
   }
 
-  findOne(id: string): Track {
+  async findOne(id: string) {
     if (!isUUID(id)) {
       throw new HttpException('Invalid id', StatusCodes.BAD_REQUEST);
     }
-    const track = this.db.tracks.find((item) => item.id === id);
+    const track = await this.trackRepo.findOneBy({ id });
     if (!track) {
       throw new NotFoundException('Track not found');
     }
     return track;
   }
 
-  update(id: string, dto: UpdateTrackDto): Track {
+  async update(id: string, dto: UpdateTrackDto) {
     if (
       (dto.name && typeof dto.name != 'string') ||
       (dto.duration && typeof dto.duration != 'number') ||
@@ -76,27 +67,30 @@ export class TrackService {
     ) {
       throw new HttpException('Invalid data', StatusCodes.BAD_REQUEST);
     }
-    const track = this.findOne(id);
+    const track = await this.trackRepo.findOneBy({ id });
     if (!track) {
       throw new NotFoundException('Album not found');
     }
-    if (dto.name) {
-      track.name = dto.name;
-    }
-    if (dto.duration) {
-      track.duration = dto.duration;
-    }
-    if (dto.artistId) {
-      track.artistId = dto.artistId;
-    }
-    if (dto.albumId) {
-      track.albumId = dto.albumId;
-    }
-    return track;
+    // if (dto.name) {
+    //   track.name = dto.name;
+    // }
+    // if (dto.duration) {
+    //   track.duration = dto.duration;
+    // }
+    // if (dto.artistId) {
+    //   track.artistId = dto.artistId;
+    // }
+    // if (dto.albumId) {
+    //   track.albumId = dto.albumId;
+    // }
+    return this.trackRepo.save({ ...track, ...dto });
   }
 
-  delete(id: string) {
-    const track = this.findOne(id);
-    this.db.tracks = this.db.tracks.filter((item) => item.id != track.id);
+  async delete(id: string) {
+    const track = await this.trackRepo.findOneBy({ id });
+    if (!track) {
+      throw new NotFoundException('Track not found');
+    }
+    return this.trackRepo.remove(track);
   }
 }

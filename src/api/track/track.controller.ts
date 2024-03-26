@@ -10,31 +10,27 @@ import {
   HttpCode,
 } from '@nestjs/common';
 import { TrackService } from './track.service';
-import { Track } from './interfaces/track.interface';
 import { CreateTrackDto } from './dto/create-track.dto';
 import { UpdateTrackDto } from './dto/update-track.dto';
 import { StatusCodes } from 'http-status-codes';
 
 @Controller('track')
 export class TrackController {
-  trackService: TrackService;
-
-  constructor(trackService: TrackService) {
-    this.trackService = trackService;
-  }
+  constructor(private trackService: TrackService) {}
 
   @Get()
-  findAll() {
-    return this.trackService.findAll();
+  async findAll() {
+    return await this.trackService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id', new ParseUUIDPipe({ version: '4' })) id: string): Track {
+  async findOne(@Param('id', new ParseUUIDPipe({ version: '4' })) id: string) {
     return this.trackService.findOne(id);
   }
 
   @Post()
-  create(@Body() dto: CreateTrackDto): Track {
+  @HttpCode(StatusCodes.CREATED)
+  async create(@Body() dto: CreateTrackDto) {
     return this.trackService.create(dto);
   }
 
@@ -42,7 +38,7 @@ export class TrackController {
   update(
     @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
     @Body() dto: UpdateTrackDto,
-  ): Track {
+  ) {
     return this.trackService.update(id, dto);
   }
 

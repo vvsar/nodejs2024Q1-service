@@ -9,9 +9,7 @@ import { UserModule } from './api/user/user.module';
 // import { AlbumService } from './api/album/album.service';
 // import { AlbumModule } from './api/album/album.module';
 import { ArtistModule } from './api/artist/artist.module';
-// import { TrackModule } from './api/track/track.module';
-// import { TrackController } from './api/track/track.controller';
-// import { TrackService } from './api/track/track.service';
+import { TrackModule } from './api/track/track.module';
 // import { FavsModule } from './api/favs/favs.module';
 // import { FavsController } from './api/favs/favs.controller';
 // import { FavsService } from './api/favs/favs.service';
@@ -37,7 +35,7 @@ const options = dataSource.options;
     // DatabaseModule,
     // AlbumModule,
     ArtistModule,
-    // TrackModule,
+    TrackModule,
     // FavsModule,
   ],
   controllers: [AppController],

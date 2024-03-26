@@ -63,12 +63,12 @@ export class ArtistService {
     ) {
       throw new HttpException('Invalid data', StatusCodes.BAD_REQUEST);
     }
-    if (nameIsGiven) {
-      artist.name = dto.name;
-    }
-    if (grammyIsGiven) {
-      artist.grammy = dto.grammy;
-    }
+    // if (nameIsGiven) {
+    //   artist.name = dto.name;
+    // }
+    // if (grammyIsGiven) {
+    //   artist.grammy = dto.grammy;
+    // }
     return this.artistRepo.save({ ...artist, ...dto });
   }
 
