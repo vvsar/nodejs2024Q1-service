@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 // import { UserController } from './api/user/user.controller';
@@ -19,28 +19,23 @@ import { UserModule } from './api/user/user.module';
 // import { FavsModule } from './api/favs/favs.module';
 // import { FavsController } from './api/favs/favs.controller';
 // import { FavsService } from './api/favs/favs.service';
-import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
-// import { dataSource } from './database/data-source';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { dataSource } from './database/data-source';
+
+const options = dataSource.options;
 
 @Module({
   imports: [
     ConfigModule.forRoot({
-      envFilePath: '.env',
+      envFilePath: `${__dirname}/.env`,
       isGlobal: true,
     }),
-    TypeOrmModule.forRootAsync({
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService): TypeOrmModuleOptions => ({
-        type: 'postgres',
-        username: configService.get('POSTGRES_USER'),
-        password: configService.get('POSTGRES_PASSWORD'),
-        host: 'db',
-        database: configService.get('POSTGRES_DB'),
-        port: +configService.get('POSTGRES_PORT'),
-        synchronize: false,
-        entities: [`${__dirname}/api/**/*.entity{.ts,.js}`],
-        migrations: [`${__dirname}/database/migrations/*.ts`],
-      }),
+    TypeOrmModule.forRoot({
+      ...options,
+      synchronize: true, //temp
+      entities: [`${__dirname}/api/**/*.entity{.ts,.js}`],
+      // migrations: [`${__dirname}/database/migrations/*.ts`],
+      migrations: [],
     }),
     UserModule,
     // DatabaseModule,

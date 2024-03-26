@@ -12,6 +12,7 @@ import { isUUID } from 'class-validator';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserEntity } from './interfaces/user.entity';
 import { StatusCodes } from 'http-status-codes';
+import { User } from './interfaces/user.interface';
 
 @Injectable()
 export class UserService {
@@ -40,26 +41,27 @@ export class UserService {
       createdAt: date,
       updatedAt: date,
     });
-
-    return this.userRepo.save(entity);
+    this.userRepo.save(entity);
+    return this.userWithoutPassword(entity);
   }
 
-  findAll(): Promise<UserEntity[]> {
-    return this.userRepo.find();
+  async findAll() {
+    const users = await this.userRepo.find();
+    return users.map((item) => this.userWithoutPassword(item));
   }
 
-  findOne(id: string): Promise<UserEntity | null> {
+  async findOne(id: string) {
     if (!isUUID(id)) {
       throw new HttpException('Invalid id', StatusCodes.BAD_REQUEST);
     }
-    const user = this.userRepo.findOneBy({ id });
+    const user = await this.userRepo.findOneBy({ id });
     if (!user) {
       throw new NotFoundException('User not found');
     }
-    return user;
+    return this.userWithoutPassword(user);
   }
 
-  async update(id: string, dto: UpdateUserDto): Promise<UserEntity> {
+  async update(id: string, dto: UpdateUserDto) {
     if (
       !dto.oldPassword ||
       typeof dto.oldPassword != 'string' ||
@@ -68,7 +70,7 @@ export class UserService {
     ) {
       throw new HttpException('Invalid data', StatusCodes.BAD_REQUEST);
     }
-    const user = await this.findOne(id);
+    const user = await this.userRepo.findOneBy({ id });
     if (!user) {
       throw new NotFoundException('User not found');
     }
@@ -78,11 +80,23 @@ export class UserService {
     user.password = dto.newPassword;
     user.version += 1;
     user.updatedAt = Date.now();
-    return this.userRepo.save({ ...user, ...dto });
+    const updatedUser = await this.userRepo.save({ ...user, ...dto });
+    return this.userWithoutPassword(updatedUser);
   }
 
-  async delete(id: string): Promise<UserEntity> {
-    const user = await this.findOne(id);
+  async delete(id: string) {
+    const user = await this.userRepo.findOneBy({ id });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
     return this.userRepo.remove(user);
   }
+
+  private userWithoutPassword = (user: Partial<User>) => ({
+    id: user.id,
+    login: user.login,
+    version: user.version,
+    createdAt: +user.createdAt,
+    updatedAt: +user.updatedAt,
+  });
 }

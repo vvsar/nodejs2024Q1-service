@@ -34,6 +34,8 @@ cp .env.example .env
 
 ## Running application
 
+Before starting, make sure Docker is running.
+
 ```
 docker-compose up
 ```
