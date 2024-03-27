@@ -1,0 +1,9 @@
+Dockerfile
+dbDockerfile
+/node_modules
+README.md
+/.git
+.gitignore
+.env
+.env.example
+/dist

@@ -1,0 +1,42 @@
+version: '3'
+services:
+  db:
+    build:
+      dockerfile: dbDockerfile
+    container_name: 'PG-database'
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - db-logs:/var/log/postgresql
+    env_file:
+      - .env
+    ports:
+      - '${POSTGRES_PORT}:${POSTGRES_PORT}'
+    restart: always
+    networks:
+      - app_net
+
+  app:
+    build:
+      dockerfile: Dockerfile
+    container_name: app
+    volumes:
+      - ./src:/app/src/
+    env_file:
+      - .env
+    ports:
+      - '${PORT}:${PORT}'
+    restart: on-failure
+    networks:
+      - app_net
+    depends_on:
+      - db
+
+volumes:
+  db-data:
+  db-logs:
+
+
+networks:
+  app_net:
+    name: app_net
+    driver: bridge
