@@ -6,11 +6,15 @@ import { UserModule } from './api/user/user.module';
 import { AlbumModule } from './api/album/album.module';
 import { ArtistModule } from './api/artist/artist.module';
 import { TrackModule } from './api/track/track.module';
-// import { FavsModule } from './api/favs/favs.module';
-// import { FavsController } from './api/favs/favs.controller';
-// import { FavsService } from './api/favs/favs.service';
+import { FavsModule } from './api/favs/favs.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { dataSource } from './database/data-source';
+import { AlbumEntity } from './api/album/interfaces/album.entity';
+import { ArtistEntity } from './api/artist/interfaces/artist.entity';
+import { TrackEntity } from './api/track/interfaces/track.entity';
+import { FavoriteAlbum } from './api/favs/interfaces/fav-album.entity';
+import { FavoriteArtist } from './api/favs/interfaces/fav-artist.entity';
+import { FavoriteTrack } from './api/favs/interfaces/fav-track.entity';
 
 const options = dataSource.options;
 
@@ -31,7 +35,15 @@ const options = dataSource.options;
     AlbumModule,
     ArtistModule,
     TrackModule,
-    // FavsModule,
+    FavsModule,
+    TypeOrmModule.forFeature([
+      AlbumEntity,
+      ArtistEntity,
+      TrackEntity,
+      FavoriteAlbum,
+      FavoriteArtist,
+      FavoriteTrack,
+    ]),
   ],
   controllers: [AppController],
   providers: [AppService],

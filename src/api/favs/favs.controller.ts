@@ -11,30 +11,43 @@ import { FavsService } from './favs.service.js';
 
 @Controller('favs')
 export class FavsController {
-  favsService: FavsService;
-  constructor(favsService: FavsService) {
-    this.favsService = favsService;
-  }
+  constructor(private favsService: FavsService) {}
 
   @Get()
-  findAll() {
-    return this.favsService.findAll();
+  async findAll() {
+    return await this.favsService.findAll();
   }
 
-  @Post(':type/:id')
-  add(
-    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
-    @Param('type') type: string,
-  ) {
-    return this.favsService.addToFavorites(id, type);
+  @Post('album/:id')
+  addAlbum(@Param('id', new ParseUUIDPipe({ version: '4' })) id: string) {
+    return this.favsService.addAlbumToFavs(id);
   }
 
-  @Delete(':type/:id')
+  @Delete('album/:id')
   @HttpCode(204)
-  delete(
-    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
-    @Param('type') type: string,
-  ) {
-    return this.favsService.removeFromFavorites(id, type);
+  deleteAlbum(@Param('id', new ParseUUIDPipe({ version: '4' })) id: string) {
+    return this.favsService.removeAlbumFromFavs(id);
+  }
+
+  @Post('artist/:id')
+  addArtist(@Param('id', new ParseUUIDPipe({ version: '4' })) id: string) {
+    return this.favsService.addArtistToFavs(id);
+  }
+
+  @Delete('artist/:id')
+  @HttpCode(204)
+  deleteArtist(@Param('id', new ParseUUIDPipe({ version: '4' })) id: string) {
+    return this.favsService.removeArtistFromFavs(id);
+  }
+
+  @Post('track/:id')
+  addTrack(@Param('id', new ParseUUIDPipe({ version: '4' })) id: string) {
+    return this.favsService.addTrackToFavs(id);
+  }
+
+  @Delete('track/:id')
+  @HttpCode(204)
+  deleteTrack(@Param('id', new ParseUUIDPipe({ version: '4' })) id: string) {
+    return this.favsService.removeTrackFromFavs(id);
   }
 }

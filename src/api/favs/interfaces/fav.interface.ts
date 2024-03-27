@@ -21,3 +21,8 @@ export enum FavEntities {
 }
 
 export type Entity = Artist | Album | Track | null;
+
+export interface FavoriteEntity<T = unknown> {
+  id: number;
+  favorite: T;
+}
